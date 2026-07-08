@@ -1,0 +1,36 @@
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+
+// Đường dẫn đến file database
+const dbPath = path.join(__dirname, '../../todo.db');
+
+// Tạo kết nối database
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('❌ Lỗi kết nối database:', err.message);
+  } else {
+    console.log('✅ Kết nối SQLite thành công');
+  }
+});
+
+// Tạo bảng todos nếu chưa tồn tại
+const createTableSQL = `
+  CREATE TABLE IF NOT EXISTS todos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    text TEXT NOT NULL,
+    completed INTEGER DEFAULT 0,
+    priority TEXT DEFAULT 'medium',
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`;
+
+db.run(createTableSQL, (err) => {
+  if (err) {
+    console.error('❌ Lỗi tạo bảng:', err.message);
+  } else {
+    console.log('✅ Bảng todos đã sẵn sàng');
+  }
+});
+
+module.exports = db;

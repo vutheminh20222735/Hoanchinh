@@ -1,0 +1,144 @@
+<div class="container">
+  <h1>📋 Todo App</h1>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    ⏳ Đang tải...
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMessage" class="error">
+    ❌ {{ errorMessage }}
+    <button (click)="loadTodos()">🔄 Thử lại</button>
+  </div>
+
+  <!-- Form thêm todo -->
+  <div class="add-todo">
+    <input 
+      type="text" 
+      [(ngModel)]="newTodoText" 
+      placeholder="Nhập công việc mới..."
+      (keyup.enter)="addTodo()"
+      class="todo-input"
+      [disabled]="loading"
+    >
+    <select [(ngModel)]="newTodoPriority" class="priority-select" [disabled]="loading">
+      <option value="low">🟢 Thấp</option>
+      <option value="medium">🟡 Trung bình</option>
+      <option value="high">🔴 Cao</option>
+    </select>
+    <button (click)="addTodo()" class="btn-add" [disabled]="loading">
+      ➕ Thêm
+    </button>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchKeyword" 
+        placeholder="🔍 Tìm kiếm công việc..."
+        (input)="onFilterChange()"
+        class="search-input"
+      >
+    </div>
+
+    <div class="filter-buttons">
+      <button 
+        [class.active]="filterStatus === 'all'" 
+        (click)="filterStatus = 'all'; onFilterChange()"
+      >
+        📋 Tất cả ({{ totalCount }})
+      </button>
+      <button 
+        [class.active]="filterStatus === 'active'" 
+        (click)="filterStatus = 'active'; onFilterChange()"
+      >
+        ⏳ Đang làm ({{ remainingCount }})
+      </button>
+      <button 
+        [class.active]="filterStatus === 'completed'" 
+        (click)="filterStatus = 'completed'; onFilterChange()"
+      >
+        ✅ Đã làm ({{ completedCount }})
+      </button>
+    </div>
+
+    <div class="sort-box">
+      <label>Sắp xếp:</label>
+      <select [(ngModel)]="sortBy" (change)="onFilterChange()" class="sort-select">
+        <option value="createdAt">📅 Ngày tạo</option>
+        <option value="priority">⭐ Ưu tiên</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Danh sách todo -->
+  <ul class="todo-list">
+    <li *ngFor="let todo of filteredTodos" 
+        [class.completed]="todo.completed"
+        [class.priority-high]="todo.priority === 'high'"
+        [class.priority-medium]="todo.priority === 'medium'"
+        [class.priority-low]="todo.priority === 'low'">
+
+      <input 
+        type="checkbox" 
+        [checked]="todo.completed"
+        (change)="toggleTodo(todo.id)"
+        class="todo-checkbox"
+        [disabled]="loading"
+      >
+
+      <!-- Hiển thị hoặc chỉnh sửa -->
+      <span *ngIf="editingTodoId !== todo.id" class="todo-text">
+        {{ todo.text }}
+        <span class="priority-badge" [class]="todo.priority">
+          {{ todo.priority === 'high' ? '🔴' : todo.priority === 'medium' ? '🟡' : '🟢' }}
+          {{ todo.priority }}
+        </span>
+        <span class="todo-date">
+          {{ todo.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+      </span>
+
+      <div *ngIf="editingTodoId === todo.id" class="edit-mode">
+        <input 
+          type="text" 
+          [(ngModel)]="editingTodoText"
+          (keyup.enter)="saveEdit()"
+          (keyup.escape)="cancelEdit()"
+          class="edit-input"
+        >
+        <button (click)="saveEdit()" class="btn-save">💾</button>
+        <button (click)="cancelEdit()" class="btn-cancel">❌</button>
+      </div>
+
+      <div class="todo-actions">
+        <button *ngIf="editingTodoId !== todo.id" (click)="startEdit(todo)" class="btn-edit">✏️</button>
+        <button (click)="deleteTodo(todo.id)" class="btn-delete">🗑️</button>
+      </div>
+    </li>
+  </ul>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && filteredTodos.length === 0" class="empty-state">
+    <p *ngIf="searchKeyword">🔍 Không tìm thấy công việc nào!</p>
+    <p *ngIf="!searchKeyword">🎉 Không có công việc nào!</p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer" *ngIf="totalCount > 0">
+    <span class="count">
+      📊 {{ remainingCount }}/{{ totalCount }} công việc còn lại
+    </span>
+    <button 
+      (click)="clearCompleted()" 
+      class="btn-clear" 
+      *ngIf="completedCount > 0"
+      [disabled]="loading"
+    >
+      🗑️ Xóa đã hoàn thành ({{ completedCount }})
+    </button>
+  </div>
+</div>
